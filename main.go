@@ -23,7 +23,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// データ
+	// データ to S3InfoMap
 	if err := loadLists(); err != nil {
 		log.Fatal(err)
 	}
