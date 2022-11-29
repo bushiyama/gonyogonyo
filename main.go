@@ -18,14 +18,17 @@ import (
 var S3InfoMap map[string]int64 // [filepash]size
 
 func main() {
-	if err := loadLists(); err != nil {
-		log.Fatal(err)
-	}
-	csvPaths, err := loadCsvPaths()
+	// マスター
+	ret, err := initResult()
 	if err != nil {
 		log.Fatal(err)
 	}
-	ret, err := initResult()
+	// データ
+	if err := loadLists(); err != nil {
+		log.Fatal(err)
+	}
+	// keylist
+	csvPaths, err := loadCsvPaths()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -41,7 +44,7 @@ func main() {
 
 			list := strings.Split(scanner.Text(), ",")
 			if list[0] == "id" {
-				continue
+				continue // header行はskip
 			}
 			nsID := list[1]
 			filePath := list[2]
