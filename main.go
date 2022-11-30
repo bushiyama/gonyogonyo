@@ -61,11 +61,11 @@ func main() {
 			ret.Client.Namespaces[nsID].FileSums[filename] = val
 		}
 	}
-	
+
 	// 集計・出力
 	ret.summarize()
 	dir, _ := os.Getwd()
-	path := dir + "/result.yaml"
+	path := filepath.Join(dir, "result.yaml")
 	ret.marshal(path)
 }
 
