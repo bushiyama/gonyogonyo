@@ -61,7 +61,7 @@ func main() {
 			ret.Client.Namespaces[nsID].FileSums[filename] = val
 		}
 	}
-	ret.sumally()
+	ret.summarize()
 	dir, _ := os.Getwd()
 	path := dir + "/result.yaml"
 	ret.marshal(path)
@@ -193,7 +193,7 @@ func initResult() (*Results, error) {
 	return &Results{Client: clientList[0]}, nil
 }
 
-func (r *Results) sumally() {
+func (r *Results) summarize() {
 	for _, n := range r.Client.Namespaces {
 		for _, f := range n.FileSums {
 			r.Client.Sum += f.Sum
