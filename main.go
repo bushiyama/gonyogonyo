@@ -39,6 +39,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+		defer f.Close()
 		scanner := bufio.NewScanner(f)
 		for scanner.Scan() {
 
@@ -67,6 +68,7 @@ func main() {
 	dir, _ := os.Getwd()
 	path := filepath.Join(dir, "result.yaml")
 	ret.marshal(path)
+	return
 }
 
 func loadLists() error {
@@ -92,6 +94,7 @@ func loadLists() error {
 			if err != nil {
 				return err
 			}
+			defer f.Close()
 			scanner := bufio.NewScanner(f)
 			for scanner.Scan() {
 				list := reg.Split(scanner.Text(), -1)
@@ -180,6 +183,7 @@ func initResult() (*Results, error) {
 		if err != nil {
 			return nil, err
 		}
+		defer f.Close()
 		scanner := bufio.NewScanner(f)
 		for scanner.Scan() {
 			l := strings.Split(scanner.Text(), ",")
