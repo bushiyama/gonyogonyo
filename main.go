@@ -49,16 +49,16 @@ func main() {
 			nsID := list[1]
 			filePath := list[2]
 			_, filename := filepath.Split(path)
-			if _, ok := ret.Client.Namespaces[nsID]; !ok {
+			if _, ok := ret.Master.Names[nsID]; !ok {
 				continue
 			}
-			val, ok := ret.Client.Namespaces[nsID].FileSums[filename]
+			val, ok := ret.Master.Names[nsID].FileSums[filename]
 			if !ok {
 				val = FileSum{}
 			}
 			val.Count++
 			val.Sum += S3InfoMap[filePath]
-			ret.Client.Namespaces[nsID].FileSums[filename] = val
+			ret.Master.Names[nsID].FileSums[filename] = val
 		}
 	}
 
@@ -129,15 +129,15 @@ func loadCsvPaths() ([]string, error) {
 }
 
 type Results struct {
-	Client Client `yaml:"client"`
+	Master Master `yaml:"master"`
 }
-type Client struct {
-	ID         int                  `yaml:"client_id"`
-	Namespaces map[string]Namespace `yaml:"namespaces"`
-	Sum        int64                `yaml:"sum"`
-	SumStr     string               `yaml:"sum_str"`
+type Master struct {
+	ID     int             `yaml:"master_id"`
+	Names  map[string]Name `yaml:"names"`
+	Sum    int64           `yaml:"sum"`
+	SumStr string          `yaml:"sum_str"`
 }
-type Namespace struct {
+type Name struct {
 	Id       string             `yaml:"id"`
 	Name     string             `yaml:"name"`
 	FileSums map[string]FileSum `yaml:"file_sumallys"`
@@ -162,7 +162,7 @@ func initResult() (*Results, error) {
 		return nil, errors.New("target directory has more than 1 file")
 	}
 
-	clientList := make([]Client, 0, len(files))
+	masterList := make([]Master, 0, len(files))
 	for _, f := range files {
 		if f.IsDir() {
 			continue
@@ -171,9 +171,9 @@ func initResult() (*Results, error) {
 		if err != nil {
 			return nil, err
 		}
-		c := Client{
-			ID:         id,
-			Namespaces: make(map[string]Namespace),
+		c := Master{
+			ID:    id,
+			Names: make(map[string]Name),
 		}
 		f, err := os.ReadFile(path.Join(dir, "target", f.Name()))
 		if err != nil {
@@ -182,34 +182,34 @@ func initResult() (*Results, error) {
 		scanner := bufio.NewScanner(strings.NewReader(string(f)))
 		for scanner.Scan() {
 			l := strings.Split(scanner.Text(), ",")
-			n := Namespace{
+			n := Name{
 				Id:       l[0],
 				Name:     l[1],
 				FileSums: map[string]FileSum{},
 			}
-			c.Namespaces[l[0]] = n
+			c.Names[l[0]] = n
 		}
-		clientList = append(clientList, c)
+		masterList = append(masterList, c)
 	}
 
-	return &Results{Client: clientList[0]}, nil
+	return &Results{Master: masterList[0]}, nil
 }
 
 func (r *Results) summarize() {
-	for _, n := range r.Client.Namespaces {
+	for _, n := range r.Master.Names {
 		for _, f := range n.FileSums {
-			r.Client.Sum += f.Sum
-			val := r.Client.Namespaces[n.Id]
+			r.Master.Sum += f.Sum
+			val := r.Master.Names[n.Id]
 			val.Sum += f.Sum
-			r.Client.Namespaces[n.Id] = val
+			r.Master.Names[n.Id] = val
 		}
 	}
-	for _, n := range r.Client.Namespaces {
-		val := r.Client.Namespaces[n.Id]
+	for _, n := range r.Master.Names {
+		val := r.Master.Names[n.Id]
 		val.SumStr = humanize.Bytes(uint64(n.Sum))
-		r.Client.Namespaces[n.Id] = val
+		r.Master.Names[n.Id] = val
 	}
-	r.Client.SumStr = humanize.Bytes(uint64(r.Client.Sum))
+	r.Master.SumStr = humanize.Bytes(uint64(r.Master.Sum))
 }
 
 func (r *Results) marshal(path string) error {
