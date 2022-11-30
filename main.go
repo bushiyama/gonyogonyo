@@ -18,16 +18,16 @@ import (
 var S3InfoMap map[string]int64 // [filepash]size
 
 func main() {
-	// マスター
+	// マスターとkeylistの関連付け
 	ret, err := initResult()
 	if err != nil {
 		log.Fatal(err)
 	}
-	// データ to S3InfoMap
+	// データの仮想KVS化
 	if err := loadLists(); err != nil {
 		log.Fatal(err)
 	}
-	// keylist
+	// keyの抽出・集計用変数へのデータ格納
 	csvPaths, err := loadCsvPaths()
 	if err != nil {
 		log.Fatal(err)
@@ -61,6 +61,8 @@ func main() {
 			ret.Client.Namespaces[nsID].FileSums[filename] = val
 		}
 	}
+	
+	// 集計・出力
 	ret.summarize()
 	dir, _ := os.Getwd()
 	path := dir + "/result.yaml"
