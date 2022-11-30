@@ -49,16 +49,16 @@ func main() {
 			nsID := list[1]
 			filePath := list[2]
 			_, filename := filepath.Split(path)
-			if _, ok := ret.Master.Names[nsID]; !ok {
+			if _, ok := ret.Source.Names[nsID]; !ok {
 				continue
 			}
-			val, ok := ret.Master.Names[nsID].FileSums[filename]
+			val, ok := ret.Source.Names[nsID].FileSums[filename]
 			if !ok {
 				val = FileSum{}
 			}
 			val.Count++
 			val.Sum += S3InfoMap[filePath]
-			ret.Master.Names[nsID].FileSums[filename] = val
+			ret.Source.Names[nsID].FileSums[filename] = val
 		}
 	}
 
@@ -129,10 +129,10 @@ func loadCsvPaths() ([]string, error) {
 }
 
 type Results struct {
-	Master Master `yaml:"master"`
+	Source Source `yaml:"source"`
 }
-type Master struct {
-	ID     int             `yaml:"master_id"`
+type Source struct {
+	ID     int             `yaml:"source_id"`
 	Names  map[string]Name `yaml:"names"`
 	Sum    int64           `yaml:"sum"`
 	SumStr string          `yaml:"sum_str"`
@@ -162,7 +162,7 @@ func initResult() (*Results, error) {
 		return nil, errors.New("target directory has more than 1 file")
 	}
 
-	masterList := make([]Master, 0, len(files))
+	sourceList := make([]Source, 0, len(files))
 	for _, f := range files {
 		if f.IsDir() {
 			continue
@@ -171,7 +171,7 @@ func initResult() (*Results, error) {
 		if err != nil {
 			return nil, err
 		}
-		c := Master{
+		c := Source{
 			ID:    id,
 			Names: make(map[string]Name),
 		}
@@ -189,27 +189,27 @@ func initResult() (*Results, error) {
 			}
 			c.Names[l[0]] = n
 		}
-		masterList = append(masterList, c)
+		sourceList = append(sourceList, c)
 	}
 
-	return &Results{Master: masterList[0]}, nil
+	return &Results{Source: sourceList[0]}, nil
 }
 
 func (r *Results) summarize() {
-	for _, n := range r.Master.Names {
+	for _, n := range r.Source.Names {
 		for _, f := range n.FileSums {
-			r.Master.Sum += f.Sum
-			val := r.Master.Names[n.Id]
+			r.Source.Sum += f.Sum
+			val := r.Source.Names[n.Id]
 			val.Sum += f.Sum
-			r.Master.Names[n.Id] = val
+			r.Source.Names[n.Id] = val
 		}
 	}
-	for _, n := range r.Master.Names {
-		val := r.Master.Names[n.Id]
+	for _, n := range r.Source.Names {
+		val := r.Source.Names[n.Id]
 		val.SumStr = humanize.Bytes(uint64(n.Sum))
-		r.Master.Names[n.Id] = val
+		r.Source.Names[n.Id] = val
 	}
-	r.Master.SumStr = humanize.Bytes(uint64(r.Master.Sum))
+	r.Source.SumStr = humanize.Bytes(uint64(r.Source.Sum))
 }
 
 func (r *Results) marshal(path string) error {
