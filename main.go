@@ -35,11 +35,11 @@ func main() {
 	for _, path := range csvPaths {
 		log.Println(path)
 
-		f, err := os.ReadFile(path)
+		f, err := os.Open(path)
 		if err != nil {
 			log.Fatal(err)
 		}
-		scanner := bufio.NewScanner(strings.NewReader(string(f)))
+		scanner := bufio.NewScanner(f)
 		for scanner.Scan() {
 
 			list := strings.Split(scanner.Text(), ",")
@@ -88,11 +88,11 @@ func loadLists() error {
 			continue
 		}
 		if path.Ext(f.Name()) == ".list" {
-			f, err := os.ReadFile(path.Join(dir, "list", f.Name()))
+			f, err := os.Open(path.Join(dir, "list", f.Name()))
 			if err != nil {
 				return err
 			}
-			scanner := bufio.NewScanner(strings.NewReader(string(f)))
+			scanner := bufio.NewScanner(f)
 			for scanner.Scan() {
 				list := reg.Split(scanner.Text(), -1)
 				size, err := strconv.ParseInt(list[2], 10, 64)
@@ -154,6 +154,7 @@ func initResult() (*Results, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	files, err := os.ReadDir(path.Join(dir, "target"))
 	if err != nil {
 		return nil, err
@@ -175,11 +176,11 @@ func initResult() (*Results, error) {
 			ID:    id,
 			Names: make(map[string]Name),
 		}
-		f, err := os.ReadFile(path.Join(dir, "target", f.Name()))
+		f, err := os.Open(path.Join(dir, "target", f.Name()))
 		if err != nil {
 			return nil, err
 		}
-		scanner := bufio.NewScanner(strings.NewReader(string(f)))
+		scanner := bufio.NewScanner(f)
 		for scanner.Scan() {
 			l := strings.Split(scanner.Text(), ",")
 			n := Name{
